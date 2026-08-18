@@ -21,5 +21,12 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+# --- 追加: JWT設定 ---
+jwt:
+  # HS256アルゴリズム用に256ビット（32バイト）以上のランダムな英数字文字列を指定
+  secret: your-super-secret-key-must-be-at-least-32-bytes-long-for-security
+  # トークンの有効期限（ミリ秒単位: 86400000 ms = 24時間）
+  expiration-ms: 86400000
+
 server:
   port: 8080

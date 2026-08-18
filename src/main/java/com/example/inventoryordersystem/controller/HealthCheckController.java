@@ -28,5 +28,11 @@ public class HealthCheckController {
     public void testError() {
         throw new RuntimeException("Test unexpected exception");
     }
+
+    // 4. JWT認証が必要なエンドポイント（テスト用）
+    @GetMapping("/protected")
+    public Map<String, String> protectedHealthCheck() {
+        return Map.of("status", "UP", "message", "You are authenticated!");
+    }
 }
 

@@ -4,6 +4,7 @@ import com.example.inventoryordersystem.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.List;
 
 @RestControllerAdvice
+@SuppressWarnings("unused") // 未使用警告を抑制 ※実際にはSpringがリフレクションで自動呼び出ししている
 public class GlobalExceptionHandler {
 
     // 1. 該当データが存在しない場合（404 NOT FOUND）
@@ -61,10 +63,25 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected error occurred",
+                "An unexpected error occurred: " + ex.getMessage(), // パラメータ未使用警告を抑制
                 request.getRequestURI()
         );
 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // 4. 認証失敗時（401 UNAUTHORIZED）
+    @ExceptionHandler({AuthenticationFailedException.class, BadCredentialsException.class})
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            Exception ex, HttpServletRequest request) {
+
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 }
