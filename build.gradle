@@ -47,3 +47,10 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+test {
+	useJUnitPlatform()
+	// Mockitoをエージェントとして有効化する設定
+	jvmArgs "-javaagent:${configurations.testCompileClasspath.find { it.name.contains('byte-buddy-agent') }}",
+	"-Xshare:off" // CDSをオフにして警告メッセージを消す
+}
