@@ -102,6 +102,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
+    // 商品コード重複登録時（409 CONFLICT）
+    @ExceptionHandler(ProductCodeAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleProductCodeAlreadyExistsException(
+            ProductCodeAlreadyExistsException ex, HttpServletRequest request) {
+
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
     // その他の予期せぬシステム例外（500 INTERNAL SERVER ERROR）
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(
