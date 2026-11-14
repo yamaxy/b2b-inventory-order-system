@@ -49,7 +49,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // 公開エンドポイント
-                        .requestMatchers("/api/v1/health", "/api/v1/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/health",
+                                "/api/v1/auth/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         // それ以外のAPI（/api/v1/health/protected を含む）は認証必須
                         .anyRequest().authenticated()
                 )
