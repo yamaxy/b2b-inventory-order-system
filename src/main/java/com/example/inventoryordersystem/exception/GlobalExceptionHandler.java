@@ -42,6 +42,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    // ビジネスロジック例外（400 BAD REQUEST）
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            BusinessException ex, HttpServletRequest request) {
+
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     // 認証失敗時（401 UNAUTHORIZED）
     @ExceptionHandler({AuthenticationFailedException.class, BadCredentialsException.class})
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
