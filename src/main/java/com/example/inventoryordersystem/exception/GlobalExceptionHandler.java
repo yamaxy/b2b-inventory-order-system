@@ -4,6 +4,7 @@ import com.example.inventoryordersystem.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -37,6 +38,21 @@ public class GlobalExceptionHandler {
                 "Validation failed for request body",
                 request.getRequestURI(),
                 details
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    // ビジネスロジック例外（400 BAD REQUEST）
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(
+            BusinessException ex, HttpServletRequest request) {
+
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
         );
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -106,6 +122,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProductCodeAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleProductCodeAlreadyExistsException(
             ProductCodeAlreadyExistsException ex, HttpServletRequest request) {
+
+        ErrorResponse response = ErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    // 楽観的ロック競合時（409 CONFLICT）
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLockingFailureException(
+            ObjectOptimisticLockingFailureException ex, HttpServletRequest request) {
 
         ErrorResponse response = ErrorResponse.of(
                 HttpStatus.CONFLICT.value(),
