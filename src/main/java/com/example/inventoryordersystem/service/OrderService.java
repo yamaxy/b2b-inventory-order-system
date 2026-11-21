@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class OrderService {
 
+    private record PreparedItem(Product product, Integer quantity, BigDecimal unitPrice) {}
+
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
@@ -51,8 +53,9 @@ public class OrderService {
                 + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
 
         BigDecimal totalAmount = BigDecimal.ZERO;
+        List<PreparedItem> preparedItems = new ArrayList<>();
 
-        // 4. 明細ごとの在庫チェックと現在庫の減算処理
+        // 4. 明細ごとの在庫チェックと現在庫の減算処理（findById は1回のみ）
         for (OrderItemRequest itemReq : request.getOrderItems()) {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("指定された商品が存在しません ID: " + itemReq.getProductId()));
@@ -65,11 +68,14 @@ public class OrderService {
             // 在庫の減算（@Versionによる楽観的ロックが有効に機能する）
             product.setCurrentStock(product.getCurrentStock() - itemReq.getQuantity());
 
-            BigDecimal subTotal = product.getPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity()));
+            BigDecimal unitPrice = product.getPrice();
+            BigDecimal subTotal = unitPrice.multiply(BigDecimal.valueOf(itemReq.getQuantity()));
             totalAmount = totalAmount.add(subTotal);
+
+            preparedItems.add(new PreparedItem(product, itemReq.getQuantity(), unitPrice));
         }
 
-        // 5. 確定した合計金額を含めて Order を構築
+        // 5. 確定した合計金額を含めて Order を構築し、明細を紐付け
         Order order = Order.builder()
                 .orderCode(orderCode)
                 .customer(customer)
@@ -80,15 +86,12 @@ public class OrderService {
                 .orderItems(new ArrayList<>())
                 .build();
 
-        // 明細の紐付け構築
-        for (OrderItemRequest itemReq : request.getOrderItems()) {
-            Product product = productRepository.findById(itemReq.getProductId()).get();
-
+        for (PreparedItem item : preparedItems) {
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
-                    .product(product)
-                    .quantity(itemReq.getQuantity())
-                    .unitPrice(product.getPrice())
+                    .product(item.product())
+                    .quantity(item.quantity())
+                    .unitPrice(item.unitPrice())
                     .build();
 
             order.getOrderItems().add(orderItem);

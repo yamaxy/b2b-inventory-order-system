@@ -4,6 +4,7 @@ import com.example.inventoryordersystem.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -133,9 +134,9 @@ public class GlobalExceptionHandler {
     }
 
     // 楽観的ロック競合時（409 CONFLICT）
-    @ExceptionHandler(OptimisticLockingFailureException.class)
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponse> handleOptimisticLockingFailureException(
-            OptimisticLockingFailureException ex, HttpServletRequest request) {
+            ObjectOptimisticLockingFailureException ex, HttpServletRequest request) {
 
         ErrorResponse response = ErrorResponse.of(
                 HttpStatus.CONFLICT.value(),
