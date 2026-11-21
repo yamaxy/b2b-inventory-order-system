@@ -176,25 +176,23 @@ class OrderControllerTest {
         requiresNewTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
         Long targetProductId = null;
-        Long targetCustomerId = null;
 
         try {
             // 1. 別トランザクションで商品を新規作成・コミット（DB上の version = 0 になる）
             Product createdProduct = requiresNewTx.execute(status -> {
-                Customer c = customerRepository.save(Customer.builder()
+                customerRepository.save(Customer.builder()
                         .customerCode("CUST-OPT-001")
                         .name("競合テスト取引先")
                         .phoneNumber("03-9999-0000")
                         .address("東京都品川区")
                         .build());
-                Product p = productRepository.save(Product.builder()
+                return productRepository.save(Product.builder()
                         .productCode("PROD-OPT-001")
                         .name("競合テスト商品")
                         .price(BigDecimal.valueOf(1000))
                         .currentStock(20)
                         .safetyStock(5)
                         .build());
-                return p;
             });
             targetProductId = createdProduct.getId();
 
