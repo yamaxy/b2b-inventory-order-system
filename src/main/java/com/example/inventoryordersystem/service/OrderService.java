@@ -27,7 +27,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class OrderService {
 
-    private record PreparedItem(Product product, Integer quantity, BigDecimal unitPrice) {}
+    private record PreparedItem(Product product, Integer quantity, BigDecimal unitPrice) {
+    }
 
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
@@ -115,5 +116,43 @@ public class OrderService {
                 .orderedAt(savedOrder.getOrderedAt())
                 .orderItems(itemResponses)
                 .build();
+    }
+
+    @Transactional
+    public OrderResponse updateOrderStatus(Long orderId, OrderStatus nextStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("受注が見つかりません。ID: " + orderId));
+
+        OrderStatus currentStatus = order.getStatus();
+        currentStatus.validateTransitionTo(nextStatus);
+
+        if (nextStatus == OrderStatus.COMPLETED) {
+            // 出荷済（COMPLETED）遷移時：現在庫数の減算
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                int quantity = item.getQuantity();
+
+                int updatedStock = product.getCurrentStock() - quantity;
+                if (updatedStock < 0) {
+                    throw new BusinessException(
+                            "商品名: " + product.getName() + " の在庫が不足しています。（現在庫: " + product.getCurrentStock() + "）"
+                    );
+                }
+
+                product.setCurrentStock(updatedStock);
+            }
+        } else if (nextStatus == OrderStatus.CANCELLED) {
+            // キャンセル（CANCELLED）遷移時：在庫数の還元
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = item.getProduct();
+                int quantity = item.getQuantity();
+
+                product.setCurrentStock(product.getCurrentStock() + quantity);
+            }
+        }
+
+        order.setStatus(nextStatus);
+        Order savedOrder = orderRepository.save(order);
+        return OrderResponse.fromEntity(savedOrder);
     }
 }
