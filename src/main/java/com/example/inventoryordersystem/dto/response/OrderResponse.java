@@ -1,5 +1,6 @@
 package com.example.inventoryordersystem.dto.response;
 
+import com.example.inventoryordersystem.entity.OrderStatus;
 import lombok.Builder;
 import lombok.Getter;
 import java.math.BigDecimal;
@@ -13,7 +14,7 @@ public class OrderResponse {
     private String orderCode;
     private Long customerId;
     private Long userId;
-    private String status;
+    private OrderStatus status;
     private BigDecimal totalAmount;
     private LocalDateTime orderedAt;
     private List<OrderItemResponse> orderItems;

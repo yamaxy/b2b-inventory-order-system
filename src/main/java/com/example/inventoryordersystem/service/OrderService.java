@@ -3,11 +3,7 @@ package com.example.inventoryordersystem.service;
 import com.example.inventoryordersystem.dto.request.OrderCreateRequest;
 import com.example.inventoryordersystem.dto.request.OrderItemRequest;
 import com.example.inventoryordersystem.dto.response.OrderResponse;
-import com.example.inventoryordersystem.entity.Customer;
-import com.example.inventoryordersystem.entity.Order;
-import com.example.inventoryordersystem.entity.OrderItem;
-import com.example.inventoryordersystem.entity.Product;
-import com.example.inventoryordersystem.entity.User;
+import com.example.inventoryordersystem.entity.*;
 import com.example.inventoryordersystem.exception.BusinessException;
 import com.example.inventoryordersystem.exception.ResourceNotFoundException;
 import com.example.inventoryordersystem.repository.CustomerRepository;
@@ -80,7 +76,7 @@ public class OrderService {
                 .orderCode(orderCode)
                 .customer(customer)
                 .user(user)
-                .status("ORDERED")
+                .status(OrderStatus.PENDING)
                 .totalAmount(totalAmount)
                 .orderedAt(LocalDateTime.now())
                 .orderItems(new ArrayList<>())
