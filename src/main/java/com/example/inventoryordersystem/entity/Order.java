@@ -2,6 +2,7 @@ package com.example.inventoryordersystem.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,9 +31,11 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Setter
-    private String status;
+    @Builder.Default
+    private OrderStatus status = OrderStatus.PENDING;
 
     @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
@@ -57,6 +60,9 @@ public class Order {
         this.updatedAt = now;
         if (this.orderedAt == null) {
             this.orderedAt = now;
+        }
+        if (this.status == null) {
+            this.status = OrderStatus.PENDING;
         }
     }
 
