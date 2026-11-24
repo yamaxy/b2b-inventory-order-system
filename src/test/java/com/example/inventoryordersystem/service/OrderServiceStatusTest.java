@@ -32,15 +32,6 @@ class OrderServiceStatusTest {
     @Mock
     private OrderRepository orderRepository;
 
-    @Mock
-    private ProductRepository productRepository;
-
-    @Mock
-    private CustomerRepository customerRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
     @InjectMocks
     private OrderService orderService;
 
